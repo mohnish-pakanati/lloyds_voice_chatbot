@@ -1,0 +1,18 @@
+.venv/
+.prep-venv/
+.bundle-build-*/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+outputs/
+
+# The bundle is generated on the connected preparation machine.
+offline_bundle/manifest.json
+offline_bundle/SHA256SUMS.txt
+offline_bundle/model-assets.json
+offline_bundle/wheels/*
+offline_bundle/models/moonshine/*
+offline_bundle/models/pocket_tts/*
+offline_bundle/voices/pocket_tts/*
+!offline_bundle/**/.gitkeep
+

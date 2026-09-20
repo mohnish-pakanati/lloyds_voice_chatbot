@@ -1,0 +1,6 @@
+# Direct runtime requirements. The fully resolved Windows/Python 3.11 set is
+# pinned in requirements-lock.txt and is what the bundle scripts use.
+moonshine-voice==0.1.5
+pocket-tts==3.1.0
+PyYAML==6.0.2
+
