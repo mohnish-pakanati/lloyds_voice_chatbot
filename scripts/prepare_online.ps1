@@ -11,6 +11,7 @@ $Bundle = Join-Path $RepoRoot 'offline_bundle'
 $LockFile = Join-Path $RepoRoot 'requirements-lock.txt'
 $Build = Join-Path $RepoRoot ('.bundle-build-' + [guid]::NewGuid().ToString('N'))
 $PrepVenv = Join-Path ([System.IO.Path]::GetTempPath()) ('voice-poc-prep-' + [guid]::NewGuid().ToString('N'))
+$TargetCheckVenv = Join-Path ([System.IO.Path]::GetTempPath()) ('voice-poc-target-check-' + [guid]::NewGuid().ToString('N'))
 
 function Assert-Python311 {
     $version = & py -3.11 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"
@@ -45,6 +46,19 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Wheel download failed. The bundle was not replaced.' }
 
     $env:PIP_NO_INDEX = '1'
+
+    # Verify with the unmodified pip bundled by Python 3.11 as well as the
+    # upgraded preparation pip. Marker evaluation can differ between pip
+    # releases, so this clean target-style install catches an incomplete
+    # wheelhouse before the bundle is transferred.
+    & py -3.11 -m venv $TargetCheckVenv
+    if ($LASTEXITCODE -ne 0) { throw 'Failed to create the clean target verification environment.' }
+    $TargetCheckPython = Join-Path $TargetCheckVenv 'Scripts\python.exe'
+    & $TargetCheckPython -m pip install --no-index --find-links (Join-Path $Build 'wheels') --requirement $LockFile
+    if ($LASTEXITCODE -ne 0) { throw 'Clean target-style offline installation verification failed.' }
+    & $TargetCheckPython -m pip check
+    if ($LASTEXITCODE -ne 0) { throw 'The clean target-style environment has dependency conflicts.' }
+
     & $Python -m pip install --no-index --find-links (Join-Path $Build 'wheels') --requirement $LockFile
     if ($LASTEXITCODE -ne 0) { throw 'Local wheel installation verification failed.' }
     & $Python -m pip check
@@ -73,6 +87,9 @@ finally {
     if (Test-Path -LiteralPath $PrepVenv) {
         Remove-Item -LiteralPath $PrepVenv -Recurse -Force
     }
+    if (Test-Path -LiteralPath $TargetCheckVenv) {
+        Remove-Item -LiteralPath $TargetCheckVenv -Recurse -Force
+    }
     if (Test-Path -LiteralPath $Build) {
         $resolvedBuild = [System.IO.Path]::GetFullPath($Build)
         if ($resolvedBuild.StartsWith($RepoRoot + [System.IO.Path]::DirectorySeparatorChar)) {
@@ -80,4 +97,3 @@ finally {
         }
     }
 }
-

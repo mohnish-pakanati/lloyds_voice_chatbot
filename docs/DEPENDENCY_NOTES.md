@@ -53,9 +53,10 @@ Relevant flags used at runtime:
 
 Transformers is not in the runtime dependency set, so `TRANSFORMERS_OFFLINE` is deliberately not required. Moonshine's direct `Transcriber` path does not use its downloader or cache at runtime. Pocket TTS receives only ordinary local paths.
 
+`hf-xet==1.5.2` is pinned and included because `huggingface-hub==1.32.0` declares it for supported Windows architectures. Runtime inference never invokes Xet or the Hub because all Pocket TTS assets are explicit local files and Hub offline mode is enforced.
+
 The Python guard blocks `socket.create_connection`, `socket.socket.connect`, `socket.socket.connect_ex`, and DNS resolution through `socket.getaddrinfo`. It catches Python-level accidental networking. The definitive system-level proof remains running the full suite with Wi-Fi and Ethernet disconnected.
 
 ## CPU and Intel hardware
 
 The first POC intentionally uses CPU inference. The Windows PyTorch wheel is CPU-capable and does not pull NVIDIA CUDA runtime wheels. Moonshine uses its packaged native CPU runtime. Intel Arc/NPU, OpenVINO, and ONNX export are potential later experiments, not prerequisites for this acceptance build.
-
