@@ -16,6 +16,8 @@ It uses:
 
 At runtime it needs no internet, DNS, PyPI, Hugging Face, GitHub, API key, cloud speech service, telemetry, model download, update check, or license check.
 
+New to the project? Read the [plain-English codebase guide](docs/CODEBASE_GUIDE.md). It explains every folder, file, data flow, and offline safeguard without assuming programming knowledge.
+
 ## Important: code and bundle are separate
 
 The Git repository contains source code and tests.
