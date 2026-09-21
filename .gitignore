@@ -6,13 +6,5 @@ __pycache__/
 .pytest_cache/
 outputs/
 
-# The bundle is generated on the connected preparation machine.
-offline_bundle/manifest.json
-offline_bundle/SHA256SUMS.txt
-offline_bundle/model-assets.json
-offline_bundle/wheels/*
-offline_bundle/models/moonshine/*
-offline_bundle/models/pocket_tts/*
-offline_bundle/voices/pocket_tts/*
-!offline_bundle/**/.gitkeep
+# The verified offline bundle is published with this repository through Git LFS.
 

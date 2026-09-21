@@ -27,6 +27,17 @@ No SSL verification is disabled. If the connected preparation machine cannot rea
 
 Transfer the complete repository directory, including `offline_bundle`, using an organization-approved file-transfer mechanism. Do not bypass enterprise security controls. Preserve filenames and directory structure; the offline laptop will reject modified or missing files through SHA-256 verification.
 
+The published repository stores the generated wheel and model binaries with Git LFS. On a connected machine where GitHub and Git LFS are organization-approved, retrieve the complete bundle with:
+
+```powershell
+git clone https://github.com/mohnish-pakanati/lloyds_voice_chatbot.git
+cd lloyds_voice_chatbot
+git lfs pull
+py -3.11 .\tools\verify_checksums.py --bundle-dir .\offline_bundle
+```
+
+A clone performed without Git LFS contains small pointer files instead of the real binaries and will fail checksum verification. GitHub/Git LFS is only a transfer path; runtime and installation remain fully offline after the repository has been retrieved.
+
 ## C. INSTALL ON OFFLINE LAPTOP
 
 From PowerShell in the transferred repository root:
