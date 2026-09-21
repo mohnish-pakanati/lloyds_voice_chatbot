@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./adaptive.db"
     cors_origins: str = "http://localhost:3000"
     llm_provider: str = "fake"
-    openai_model: str = "gpt-5.6-mini"
+    openai_model: str = "gpt-5.6"
     openai_api_key: str | None = None
     research_provider: str = "curated"
     auth_required: bool = True
