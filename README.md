@@ -1,183 +1,219 @@
-# Fully offline Windows voice POC
+# Offline voice chatbot for Windows
 
-This repository packages and runs an English voice loop using the official Moonshine Voice STT and Kyutai Pocket TTS implementations. Runtime is local-only: no DNS, internet, PyPI, Hugging Face, GitHub, cloud speech service, telemetry, model download, update check, or license check is required.
+This is a fully local English voice proof of concept:
 
-Target: Windows 11 x64, CPython 3.11, CPU inference. The default STT is Moonshine Medium Streaming; `small` is available during bundle preparation. TTS is Pocket TTS 3.1.0 `english_2026-04` with the official precomputed `alba` voice. See [dependency notes](docs/DEPENDENCY_NOTES.md) for verified APIs and asset provenance.
-
-## A. PREPARE BUNDLE ON INTERNET MACHINE
-
-Use an internet-connected Windows x64 machine with 64-bit Python 3.11. Start in the repository root:
-
-```powershell
-py -3.11 --version
-.\scripts\prepare_online.ps1 -MoonshineModel medium
+```text
+Microphone -> Moonshine STT -> Python -> Pocket TTS -> Speaker
 ```
 
-For the lighter STT model:
+It uses:
+
+- Python 3.11 on Windows x64
+- Moonshine Voice 0.1.5, Medium Streaming English
+- Pocket TTS 3.1.0, `english_2026-04`
+- the built-in `alba` voice
+- CPU inference; CUDA is not required
+
+At runtime it needs no internet, DNS, PyPI, Hugging Face, GitHub, API key, cloud speech service, telemetry, model download, update check, or license check.
+
+## Important: code and bundle are separate
+
+The Git repository contains source code and tests.
+
+The large wheels and model files are distributed as one verified ZIP in the [v1.0.0 offline bundle release](https://github.com/mohnish-pakanati/lloyds_voice_chatbot/releases/tag/v1.0.0-offline-bundle).
+
+Do not use Git LFS for the bundle on the Lloyds laptop. Download the release ZIP through the browser or use an organization-approved transfer method.
+
+## Lloyds laptop: simple setup without PowerShell scripts
+
+Use these instructions when `.ps1` files are blocked by corporate policy. Type each command directly into PowerShell. Do not change or bypass the execution policy.
+
+### 1. Get the source code
+
+For a clean checkout:
 
 ```powershell
-.\scripts\prepare_online.ps1 -MoonshineModel small
+git clone https://github.com/mohnish-pakanati/lloyds_voice_chatbot.git lloyds_voice_chatbot_clean
+cd lloyds_voice_chatbot_clean
 ```
 
-The script creates a temporary Python 3.11 environment, downloads a complete Windows wheelhouse, installs and checks it from that wheelhouse, downloads the exact official model assets, writes `offline_bundle/manifest.json`, generates SHA-256 checksums, and verifies the finished bundle. It builds in a staging directory and replaces `offline_bundle` only after verification. Use `-Force` when intentionally replacing an existing generated bundle.
-
-No SSL verification is disabled. If the connected preparation machine cannot reach PyPI, `download.moonshine.ai`, or Hugging Face through the organization's supported network configuration, prepare the bundle on another approved connected machine.
-
-## B. TRANSFER
-
-Transfer the complete repository directory, including `offline_bundle`, using an organization-approved file-transfer mechanism. Do not bypass enterprise security controls. Preserve filenames and directory structure; the offline laptop will reject modified or missing files through SHA-256 verification.
-
-The published repository stores the generated wheel and model binaries with Git LFS. On a connected machine where GitHub and Git LFS are organization-approved, retrieve the complete bundle with:
+If you already have a working checkout:
 
 ```powershell
-git clone https://github.com/mohnish-pakanati/lloyds_voice_chatbot.git
-cd lloyds_voice_chatbot
-git lfs pull
+git pull origin main
+```
+
+### 2. Download the offline bundle
+
+Download this file in the browser:
+
+[offline_bundle-windows-py311.zip](https://github.com/mohnish-pakanati/lloyds_voice_chatbot/releases/download/v1.0.0-offline-bundle/offline_bundle-windows-py311.zip)
+
+Expected ZIP SHA-256:
+
+```text
+18543EB81F19E16C6FD712560CE2E328DCFC287E999E7C75831B8DB9D89FD179
+```
+
+### 3. Verify and extract the ZIP
+
+```powershell
+Get-FileHash "$env:USERPROFILE\Downloads\offline_bundle-windows-py311.zip" -Algorithm SHA256
+Expand-Archive -LiteralPath "$env:USERPROFILE\Downloads\offline_bundle-windows-py311.zip" -DestinationPath . -Force
+```
+
+The calculated SHA-256 must exactly match the value above.
+
+Verify all files inside the extracted bundle:
+
+```powershell
 py -3.11 .\tools\verify_checksums.py --bundle-dir .\offline_bundle
 ```
 
-A clone performed without Git LFS contains small pointer files instead of the real binaries and will fail checksum verification. GitHub/Git LFS is only a transfer path; runtime and installation remain fully offline after the repository has been retrieved.
+Expected result:
 
-## C. INSTALL ON OFFLINE LAPTOP
-
-From PowerShell in the transferred repository root:
-
-```powershell
-.\scripts\verify_bundle.ps1
-.\scripts\install_offline.ps1
+```text
+BUNDLE CHECKSUMS: PASS (67 files)
 ```
 
-Installation requires 64-bit Python 3.11, creates `.venv`, and runs pip with both `--no-index` and `--find-links=offline_bundle\wheels`. It sets Hugging Face offline/telemetry flags and does not initialize a downloader. To recreate an existing environment:
+This means every required wheel, model and voice file exists and matches the prepared bundle.
+
+### 4. Create the Python environment
 
 ```powershell
-.\scripts\install_offline.ps1 -Recreate
+py -3.11 --version
+py -3.11 -m venv .venv
 ```
 
-If corporate PowerShell policy blocks unsigned scripts, use the organization's approved script-signing or execution process; do not weaken corporate policy.
+Python must report version 3.11.x and must be 64-bit.
 
-## D. TEST STT
-
-Place a non-confidential English WAV at `samples\sample.wav`, then run:
+### 5. Enable offline mode
 
 ```powershell
-.\.venv\Scripts\python.exe .\tests\test_stt_file.py --audio .\samples\sample.wav
+$env:PIP_NO_INDEX="1"
+$env:HF_HUB_OFFLINE="1"
+$env:HF_HUB_DISABLE_TELEMETRY="1"
+$env:DO_NOT_TRACK="1"
+$env:OFFLINE_MODE="1"
+$env:VOICE_POC_ROOT=(Get-Location).Path
+$env:PYTHONPATH=(Get-Location).Path
 ```
 
-For the default microphone:
+These variables apply to the current PowerShell window. Set them again after opening a new window.
+
+### 6. Install only from the local bundle
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install --no-index --find-links .\offline_bundle\wheels --requirement .\requirements-lock.txt
+.\.venv\Scripts\python.exe -m pip check
+```
+
+Expected final line:
+
+```text
+No broken requirements found.
+```
+
+`--no-index` prevents pip from contacting PyPI.
+
+### 7. Run the automated offline test
+
+```powershell
+.\.venv\Scripts\python.exe .\tools\verify_no_network.py --run-suite
+```
+
+Expected result:
+
+```text
+OFFLINE STT INITIALIZATION: PASS
+OFFLINE TTS INITIALIZATION: PASS
+OFFLINE TTS: PASS
+OFFLINE STT: PASS
+OFFLINE ROUNDTRIP: PASS
+NETWORK ATTEMPTS: 0
+```
+
+### 8. Test the speaker
+
+```powershell
+.\.venv\Scripts\python.exe .\tests\test_tts.py --play
+```
+
+### 9. Test the microphone
 
 ```powershell
 .\.venv\Scripts\python.exe .\tests\test_stt_microphone.py --seconds 5
 ```
 
-The commands print transcript, load/inference time, audio duration, and real-time factor.
-
-## E. TEST TTS
-
-```powershell
-.\.venv\Scripts\python.exe .\tests\test_tts.py
-```
-
-The output is `outputs\tts_test.wav`. Add `--play` to play it through the default Windows output device.
-
-## F. TEST STT + TTS ROUNDTRIP
-
-Interactive microphone to Moonshine to Python to Pocket TTS to speaker:
+### 10. Test the complete voice loop
 
 ```powershell
 .\.venv\Scripts\python.exe .\tests\test_roundtrip.py --mode microphone --play
 ```
 
-Non-interactive file round trip (the input is synthesized locally when `--input` is omitted):
+Say: `Hello, can you hear me?`
 
-```powershell
-.\.venv\Scripts\python.exe .\tests\test_roundtrip.py --mode file
-```
+The system should reply: `You said: Hello, can you hear me?`
 
-The response is exactly `You said: ` plus Moonshine's transcript and is written to `outputs\roundtrip.wav`.
+## Final zero-internet proof
 
-## G. PROVE ZERO-INTERNET OPERATION
+After installation:
 
 1. Disable Wi-Fi.
-2. Disconnect Ethernet and VPN where appropriate under organization policy.
-3. Run:
+2. Disconnect Ethernet and VPN where appropriate under Lloyds policy.
+3. Open PowerShell in the repository.
+4. Set the offline environment variables from step 5 again.
+5. Run:
 
 ```powershell
+.\.venv\Scripts\python.exe .\tools\verify_no_network.py --run-suite
+```
+
+All tests must pass with `NETWORK ATTEMPTS: 0`.
+
+## Standard setup when PowerShell scripts are allowed
+
+After placing the extracted `offline_bundle` in the repository root:
+
+```powershell
+.\scripts\verify_bundle.ps1
+.\scripts\install_offline.ps1
 .\scripts\run_all_tests.ps1
 ```
 
-4. Expected result:
-
-```text
-OFFLINE STT: PASS
-OFFLINE TTS: PASS
-OFFLINE ROUNDTRIP: PASS
-NETWORK ATTEMPTS: 0
-```
-
-The suite verifies bundle hashes, activates Hugging Face offline mode, blocks common Python socket/DNS connection paths, initializes both models from explicit local files, performs both inference paths, and completes a file-based round trip. For device acceptance too, run:
+For microphone and playback testing:
 
 ```powershell
 .\scripts\run_all_tests.ps1 -IncludeMicrophone -PlayAudio
 ```
 
-Physical/logical network disconnection is the definitive validation because Python monkey-patching cannot observe networking initiated entirely inside arbitrary native libraries.
+## Build a new bundle on an internet-connected machine
 
-## Repository layout
+Only use this when intentionally rebuilding the bundle:
 
-```text
-voice_poc/
-|-- README.md
-|-- requirements.txt
-|-- requirements-lock.txt
-|-- docs/DEPENDENCY_NOTES.md
-|-- scripts/
-|   |-- prepare_online.ps1
-|   |-- install_offline.ps1
-|   |-- verify_bundle.ps1
-|   `-- run_all_tests.ps1
-|-- tools/
-|   |-- download_models.py
-|   |-- verify_checksums.py
-|   `-- verify_no_network.py
-|-- src/
-|   |-- config.py
-|   |-- offline.py
-|   |-- stt/moonshine_stt.py
-|   `-- tts/pocket_tts.py
-|-- tests/
-|   |-- test_stt_file.py
-|   |-- test_stt_microphone.py
-|   |-- test_tts.py
-|   |-- test_roundtrip.py
-|   `-- test_offline.py
-|-- samples/README.md
-`-- offline_bundle/
-    |-- wheels/
-    |-- models/moonshine/
-    |-- models/pocket_tts/
-    |-- voices/pocket_tts/
-    |-- manifest.json          (generated)
-    `-- SHA256SUMS.txt         (generated)
+```powershell
+.\scripts\prepare_online.ps1 -MoonshineModel medium -Force
 ```
 
-## Troubleshooting
+The preparation script downloads the exact Windows wheels and model assets, validates a clean offline installation, writes the manifest, and generates checksums. It never disables SSL verification.
 
-- **Wrong Python version:** `py -3.11 --version` must report Python 3.11, and it must be 64-bit. Install Python only through an approved enterprise software channel.
-- **Missing wheels:** rerun online preparation. A clean offline install must not fetch a missing dependency. `pip install` will fail because `PIP_NO_INDEX=1` is intentional.
-- **Wrong wheel architecture:** prepare on Windows x64 with 64-bit Python 3.11. Do not prepare this Windows bundle on macOS or Linux.
-- **Missing Moonshine files:** the error names the exact local directory. Re-transfer the complete bundle and run `scripts\verify_bundle.ps1`.
-- **Missing Pocket TTS model/tokenizer:** verify `offline_bundle\models\pocket_tts` and checksums. There is no download fallback.
-- **Missing voice asset:** verify `offline_bundle\voices\pocket_tts\alba.safetensors`. A bare voice name is never passed at runtime.
-- **Microphone permission denied:** enable desktop microphone access under Windows Settings according to organization policy and confirm the intended default input device.
-- **Audio device unavailable:** select/enable a Windows default input/output device. File STT/TTS tests do not require playback hardware.
-- **Torch attempts a download:** this project passes only a local Pocket TTS YAML whose checkpoint and tokenizer values are absolute local paths. Confirm that the generated runtime YAML under `outputs\.runtime` contains no `hf://` or `https://` value. Keep `HF_HUB_OFFLINE=1`.
-- **Hugging Face attempts a download:** check that `OFFLINE_MODE=1` and `HF_HUB_OFFLINE=1` are not being overridden, and do not replace the local voice path with `alba` or an `hf://` URL.
-- **Checksum mismatch:** do not install. Re-transfer the bundle or rebuild it on the approved connected preparation machine.
+## What the checks prove
 
-## Scope and limitations
+- ZIP SHA-256 proves the downloaded archive is byte-for-byte identical.
+- `verify_checksums.py` proves all 67 internal files are present and unchanged.
+- `verify_no_network.py` blocks common Python network calls during initialization and inference.
+- Physically disconnecting networking is the final system-level offline proof.
 
-- English, one user, low concurrency, CPU only.
-- Pocket TTS voice cloning is intentionally unavailable; the official no-voice-cloning checkpoint and built-in `alba` state avoid gated asset and runtime credential requirements.
-- No LLM, server, API, Docker, FastAPI service, RAG, or production infrastructure is included.
-- Intel Arc/NPU/OpenVINO optimization is deferred until the CPU baseline passes on the target laptop.
+Checksums prove file integrity. They do not replace Lloyds malware scanning, vulnerability review, license review, code signing, or application allow-listing.
 
+## Common problems
+
+- **PowerShell says scripts are disabled:** use the typed commands above or ask Lloyds IT to sign and approve the `.ps1` files. Do not bypass policy.
+- **Git LFS authorization error:** do not use LFS. Download the release ZIP in a browser.
+- **Checksum file is missing:** the release ZIP was not extracted into the repository root.
+- **Checksum mismatch:** stop. Download or transfer the bundle again.
+- **Python is not 3.11:** use an organization-approved Python 3.11 x64 installation.
+- **Microphone denied:** enable desktop microphone access through the approved Windows policy.
+- **No audio:** select a working Windows input/output device.
+
+Technical API and model provenance details are in [docs/DEPENDENCY_NOTES.md](docs/DEPENDENCY_NOTES.md).
