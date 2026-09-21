@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: adaptive
+      POSTGRES_USER: adaptive
+      POSTGRES_PASSWORD: adaptive
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U adaptive -d adaptive"]
+      interval: 3s
+      timeout: 3s
+      retries: 15
+    volumes:
+      - adaptive_pg:/var/lib/postgresql/data
+  api:
+    build: ./apps/api
+    environment:
+      DATABASE_URL: postgresql+psycopg://adaptive:adaptive@db:5432/adaptive
+      LLM_PROVIDER: ${LLM_PROVIDER:-fake}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5.6-mini}
+      CORS_ORIGINS: http://localhost:3000
+      CODE_RUNNER_IN_CONTAINER: "true"
+      CODE_RUNNER_WORK_ROOT: /sandbox
+    depends_on:
+      db:
+        condition: service_healthy
+    ports: ["8000:8000"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - code_runs:/sandbox
+  web:
+    build:
+      context: ./apps/web
+    environment:
+      API_INTERNAL_URL: http://api:8000
+    depends_on: [api]
+    ports: ["3000:3000"]
+volumes:
+  adaptive_pg:
+  code_runs:

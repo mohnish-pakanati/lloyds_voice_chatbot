@@ -5,6 +5,16 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 outputs/
+.env
+.env.local
+adaptive-learning-platform/.env
+adaptive-learning-platform/.env.local
+adaptive-learning-platform/**/__pycache__/
+adaptive-learning-platform/**/.pytest_cache/
+adaptive-learning-platform/**/node_modules/
+adaptive-learning-platform/**/.next/
+adaptive-learning-platform/apps/api/adaptive.db
+adaptive-learning-platform/apps/api/migration.db
 
 # The bundle is generated on the connected preparation machine.
 offline_bundle/manifest.json
@@ -15,4 +25,3 @@ offline_bundle/models/moonshine/*
 offline_bundle/models/pocket_tts/*
 offline_bundle/voices/pocket_tts/*
 !offline_bundle/**/.gitkeep
-
