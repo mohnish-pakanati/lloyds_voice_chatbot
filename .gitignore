@@ -13,6 +13,7 @@ adaptive-learning-platform/**/__pycache__/
 adaptive-learning-platform/**/.pytest_cache/
 adaptive-learning-platform/**/node_modules/
 adaptive-learning-platform/**/.next/
+adaptive-learning-platform/**/*.tsbuildinfo
 adaptive-learning-platform/apps/api/adaptive.db
 adaptive-learning-platform/apps/api/migration.db
 
