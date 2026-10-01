@@ -17,7 +17,8 @@ adaptive-learning-platform/**/*.tsbuildinfo
 adaptive-learning-platform/apps/api/adaptive.db
 adaptive-learning-platform/apps/api/migration.db
 
-# The bundle is generated on the connected preparation machine.
+# Generated offline bundle. Distribute the verified ZIP through GitHub Releases
+# or an organization-approved file-transfer mechanism, not through Git history.
 offline_bundle/manifest.json
 offline_bundle/SHA256SUMS.txt
 offline_bundle/model-assets.json
