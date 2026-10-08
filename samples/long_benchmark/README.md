@@ -1,8 +1,10 @@
 # Longer English accent recordings
 
+The 30 WAV recordings have been removed from the current checkout at the user's request. The transcripts, manifest, license, and preparation tool remain. The description below documents the former set; audio examples and verification require local regeneration first. Regenerated recordings are ignored by Git.
+
 30 real conversational recordings, each 30–120 seconds, with a predominance of English and Irish accents:
 
-The checked-in set ranges from **36.4 to 118.9 seconds**, totaling **34.1 minutes** across **9 speakers** (4 UK English, 4 Irish, 1 Indian-group speaker).
+The originally prepared set ranges from **36.4 to 118.9 seconds**, totaling **34.1 minutes** across **9 speakers** (4 UK English, 4 Irish, 1 Indian-group speaker).
 
 | Group | Recordings | Corpus accent label |
 | --- | ---: | --- |
@@ -19,7 +21,7 @@ These are continuous speech turns or continuous excerpts, not stitched sentences
 - `manifest.json`: transcripts, raw annotations, speaker/accent labels, durations, SHA-256 checksums, source links/revision, and excerpt timing details.
 - `LICENSE-CC-BY-SA-4.0.txt`: the source corpus's full redistribution license.
 
-For example, on the Lloyds laptop after pulling the repository:
+For example, on the Lloyds laptop after regenerating the audio locally:
 
 ```powershell
 .\.venv\Scripts\python.exe .\tests\test_stt_file.py --audio .\samples\long_benchmark\clips\edacc_test_03314.wav
@@ -47,7 +49,7 @@ The recordings, transcripts, and this adapted subset are distributed under [Crea
 
 ## Data checks and rebuilding
 
-Verify the checked-in samples without loading any speech models:
+Verify locally regenerated samples without loading any speech models:
 
 ```powershell
 .\.venv\Scripts\python.exe .\tools\prepare_long_samples.py verify

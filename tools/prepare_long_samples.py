@@ -4,7 +4,7 @@ Online dependencies: requests, pyarrow, numpy, scipy, soundfile.
 Only small metadata columns and individually selected recordings are downloaded.
 For build, place the official corpus test/text, test/segments and test/company.ctm
 in --cache as test__text, test__segments and test__company.ctm respectively.
-The existing checked-in recordings can be verified without these source files.
+Locally prepared recordings can be verified without these source files.
 """
 from __future__ import annotations
 
@@ -255,6 +255,8 @@ def verify(output):
     import wave
 
     rows = json.loads((output / "manifest.json").read_text(encoding="utf-8"))["clips"]
+    if any(not (output / row["audio_file"]).is_file() for row in rows):
+        raise RuntimeError("Recordings are no longer checked into Git. Regenerate the audio locally before running verify; see samples/long_benchmark/README.md.")
     assert Counter(row["accent_group"] for row in rows) == Counter(QUOTAS), "Incorrect accent counts"
     assert len({row["id"] for row in rows}) == 30, "Missing or duplicate IDs"
     assert {f"clips/{p.name}" for p in (output / "clips").glob("*.wav")} == {r["audio_file"] for r in rows}, "Audio files differ from manifest"

@@ -18,6 +18,8 @@ At runtime it needs no internet, DNS, PyPI, Hugging Face, GitHub, API key, cloud
 
 New to the project? Read the [plain-English codebase guide](docs/CODEBASE_GUIDE.md). It explains every folder, file, data flow, and offline safeguard without assuming programming knowledge.
 
+Need FFmpeg on the offline Windows laptop? Use the separate [verified FFmpeg wheel set and installation guide](vendor/ffmpeg/README.md). It includes the Python wrapper and a Windows x64 executable; it does not change the existing model bundle.
+
 ## Important: code and bundle are separate
 
 The Git repository contains source code and tests.

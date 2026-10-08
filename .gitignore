@@ -6,9 +6,16 @@ __pycache__/
 .pytest_cache/
 outputs/
 .sample-prep-*/
-# Local working audio during benchmark preparation. The curated clips live in
-# samples/benchmark/clips and are tracked with their manifest.
+# Recordings are local-only; benchmark metadata/transcripts remain tracked.
 samples/benchmark/audio/
+samples/**/*.wav
+samples/**/*.flac
+samples/**/*.mp3
+samples/**/*.m4a
+samples/**/*.ogg
+samples/**/*.opus
+samples/**/*.webm
+samples/**/*.aac
 .env
 .env.local
 adaptive-learning-platform/.env

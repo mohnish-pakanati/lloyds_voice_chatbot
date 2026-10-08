@@ -1,5 +1,7 @@
 # Accent benchmark clips
 
+The 30 WAV recordings have been removed from the current checkout at the user's request. The manifest and attribution are retained. The description below documents the former set; restore or prepare the audio locally before using its file paths.
+
 This is a compact, traceable evaluation set of 30 human-recorded English clips from the CSTR VCTK Corpus 0.92:
 
 - 6 Indian English clips
