@@ -4,6 +4,8 @@ Place an English, mono or stereo PCM WAV at `samples/sample.wav` for the standal
 
 `benchmark/` contains 30 short, human-recorded English WAVs prepared for repeatable accent coverage checks. They are 16 kHz, mono, PCM WAV files and each has an authoritative source transcript in `benchmark/manifest.json`.
 
+`long_benchmark/` contains a separate set of 30 continuous human speech recordings of 30–120 seconds, with 12 UK English, 12 Irish English, and 6 Indian English samples. Each has a transcript in its manifest and a matching `.txt` sidecar. See [the long benchmark README](long_benchmark/README.md) for use, source attribution, and evaluation notes.
+
 For example:
 
 ```powershell

@@ -5,6 +5,7 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 outputs/
+.sample-prep-*/
 # Local working audio during benchmark preparation. The curated clips live in
 # samples/benchmark/clips and are tracked with their manifest.
 samples/benchmark/audio/
